@@ -9,11 +9,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    depends_on:
-      bot:
-        condition: service_started
-      admin-vue:
-        condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   certbot:
     image: certbot/certbot:v4.0.0
