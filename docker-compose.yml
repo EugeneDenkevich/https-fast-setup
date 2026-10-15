@@ -17,3 +17,15 @@ services:
     volumes:
       - ./nginx/certbot/www/:/var/www/certbot/:rw
       - ./nginx/certbot/conf/:/etc/letsencrypt/:rw
+
+  certbot-renew:
+    image: certbot/certbot:v4.0.0
+    restart: unless-stopped
+    depends_on:
+      - nginx
+    pid: "service:nginx"
+    entrypoint: ["/bin/sh", "/scripts/certbot-renew.sh"]
+    volumes:
+      - ./nginx/certbot/www/:/var/www/certbot/:rw
+      - ./nginx/certbot/conf/:/etc/letsencrypt/:rw
+      - ./scripts/certbot-renew.sh:/scripts/certbot-renew.sh:ro

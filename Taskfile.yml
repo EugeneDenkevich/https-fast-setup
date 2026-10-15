@@ -155,3 +155,25 @@ tasks:
         -text
         -noout
     desc: get cert info
+
+  test-renew:
+    cmds:
+      - >
+        docker compose
+        exec
+        certbot-renew
+        certbot renew
+        --dry-run
+        --run-deploy-hooks
+        --deploy-hook 'kill -HUP 1'
+    desc: test certificate renewal
+
+  renew-cert:
+    cmds:
+      - >
+        docker compose
+        exec
+        certbot-renew
+        certbot renew
+        --deploy-hook 'kill -HUP 1'
+    desc: manually renew certificates that are due

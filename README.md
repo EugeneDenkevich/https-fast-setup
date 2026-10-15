@@ -20,4 +20,10 @@ Help you to configure
 6. Get cert info:
 `task cert-info`
 
+7. Check certificate renewal (dry run):
+`task test-renew`
+
+8. Renew cert manually:
+`task renew-cert`
+
 #### © Eugene Denkevich, 2026.
