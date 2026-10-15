@@ -53,11 +53,15 @@ tasks:
         case "$cli_args" in
           "--domain "*) domain="${cli_args#--domain }" ;;
           --domain=*) domain="${cli_args#--domain=}" ;;
+          ?*) domain="$cli_args" ;;
           *)
-            echo "Usage: task set-domain -- --domain example.com" >&2
+            echo "Usage: task sd -- [--domain] example.com" >&2
             exit 1
             ;;
         esac
+
+        domain="${domain#https://}"
+        domain="${domain#http://}"
 
         case "$domain" in
           ""|*[!A-Za-z0-9.-]*)
@@ -66,6 +70,88 @@ tasks:
             ;;
         esac
 
-        rg -l --hidden --no-ignore --null 'some-domain[.]eug' --glob '!.git/**' . |
+        grep -rIlZ --exclude-dir=.git -- 'some-domain[.]eug' . |
           xargs -0 -r sed -i "s/some-domain[.]eug/$domain/g"
-    desc: replace the project domain (usage: task set-domain -- --domain example.com)
+    desc: 'replace the project domain (usage: task sd -- [--domain] example.com)'
+
+  switch-http:
+    aliases:
+      - sh
+    cmds:
+      - |
+        sed -i -E '
+          /listen 80;/,/^}/ {
+            s/^([[:space:]]*)# (proxy_pass|proxy_http_version|proxy_set_header|proxy_cache_bypass)/\1\2/
+            s/^([[:space:]]*)return 301 (https:\/\/[^$]*\$request_uri;)/\1# return 301 \2/
+          }
+        ' ./nginx/default.conf
+    desc: enable proxying in the HTTP server block
+
+  switch-https:
+    aliases:
+      - shs
+    cmds:
+      - |
+        sed -i -E '
+          /listen 80;/,/^}/ {
+            s/^([[:space:]]*)(proxy_pass|proxy_http_version|proxy_set_header|proxy_cache_bypass)/\1# \2/
+            s/^([[:space:]]*)# return 301 (https:\/\/[^$]*\$request_uri;)/\1return 301 \2/
+            s/^([[:space:]]*)# (https:\/\/[^$]*\$request_uri;)/\1return 301 \2/
+          }
+        ' ./nginx/default.conf
+    desc: enable the HTTPS redirect in the HTTP server block
+
+  test-cert:
+    aliases:
+      - tc
+    cmds:
+      - >
+        docker compose
+        -f docker-compose.yml
+        run
+        --rm certbot
+        certonly
+        --webroot
+        --webroot-path /var/www/certbot/
+        --email eugenestudio@mail.ru
+        --agree-tos
+        --non-interactive
+        --expand
+        -d some-domain.eug
+        -d www.some-domain.eug
+        --dry-run
+    desc: test cert generation
+
+  cert:
+    aliases:
+      - c
+    cmds:
+      - >
+        docker compose
+        -f docker-compose.yml
+        run
+        --rm certbot
+        certonly
+        --webroot
+        --webroot-path /var/www/certbot/
+        --email eugenestudio@mail.ru
+        --agree-tos
+        --non-interactive
+        --expand
+        -d some-domain.eug
+        -d www.some-domain.eug
+    desc: cert generation
+
+  cert-info:
+    aliases:
+      - ci
+    cmds:
+      - >
+        docker compose
+        exec
+        -it nginx
+        openssl x509
+        -in /etc/letsencrypt/live/some-domain.eug/cert.pem
+        -text
+        -noout
+    desc: get cert info

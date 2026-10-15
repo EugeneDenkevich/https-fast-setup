@@ -1,14 +1,23 @@
-### Configure https:
-#### Test:
-```
-docker compose -f docker-compose.yml run --rm certbot certonly --webroot --webroot-path /var/www/certbot/ --email eugenestudio@mail.ru --agree-tos --non-interactive --expand -d some-domain.eug -d www.some-domain.eug --dry-run
-```
-#### Generate:
-```
-docker compose -f docker-compose.yml run --rm certbot certonly --webroot --webroot-path /var/www/certbot/ --email eugenestudio@mail.ru --agree-tos --non-interactive --expand -d some-domain.eug -d www.some-domain.eug
-```
+# HTTPS Fast Config
+Help you to configure 
 
-#### Info about sert:
-docker compose exec -it nginx openssl x509 -in /etc/letsencrypt/live/some-domain.eug/cert.pem -text -noout
+### STEPS:
+1. Replace domain:
+`task set-domain -- your-favorite-domain.app`
+
+2. Switch to http for cert generation:
+`task switch-http`
+
+3. Test cert generation:
+`task test-cert`
+
+4. Run cert generation:
+`task cert`
+
+5. Switch https back:
+`task switch-https`
+
+6. Get cert info:
+`task cert-info`
 
 #### © Eugene Denkevich, 2026.
