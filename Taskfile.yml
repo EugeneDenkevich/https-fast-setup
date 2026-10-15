@@ -42,3 +42,30 @@ tasks:
         || exit 0
     desc: show services' logs
     interactive: true
+
+  set-domain:
+    aliases:
+      - sd
+    cmds:
+      - |
+        cli_args={{.CLI_ARGS | shellQuote}}
+
+        case "$cli_args" in
+          "--domain "*) domain="${cli_args#--domain }" ;;
+          --domain=*) domain="${cli_args#--domain=}" ;;
+          *)
+            echo "Usage: task set-domain -- --domain example.com" >&2
+            exit 1
+            ;;
+        esac
+
+        case "$domain" in
+          ""|*[!A-Za-z0-9.-]*)
+            echo "Domain may contain only letters, digits, dots, and hyphens." >&2
+            exit 1
+            ;;
+        esac
+
+        rg -l --hidden --no-ignore --null 'some-domain[.]eug' --glob '!.git/**' . |
+          xargs -0 -r sed -i "s/some-domain[.]eug/$domain/g"
+    desc: replace the project domain (usage: task set-domain -- --domain example.com)
