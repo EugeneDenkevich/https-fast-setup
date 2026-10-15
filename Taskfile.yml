@@ -79,19 +79,35 @@ tasks:
       - sh
     cmds:
       - |
+        if sed -n '/^# BEGIN HTTPS SERVER (managed by task switch-http and task switch-https)$/,/^# END HTTPS SERVER$/p' ./nginx/default.conf | grep -q '^server {$'; then
+          sed -i '/^# BEGIN HTTPS SERVER (managed by task switch-http and task switch-https)$/,/^# END HTTPS SERVER$/ {
+            /^# BEGIN HTTPS SERVER (managed by task switch-http and task switch-https)$/b
+            /^# END HTTPS SERVER$/b
+            s/^/# /
+          }' ./nginx/default.conf
+        fi
+
         sed -i -E '
           /listen 80;/,/^}/ {
             s/^([[:space:]]*)# (proxy_pass|proxy_http_version|proxy_set_header|proxy_cache_bypass)/\1\2/
             s/^([[:space:]]*)return 301 (https:\/\/[^$]*\$request_uri;)/\1# return 301 \2/
           }
         ' ./nginx/default.conf
-    desc: enable proxying in the HTTP server block
+    desc: enable HTTP mode and disable the TLS server block for certificate issuance
 
   switch-https:
     aliases:
       - shs
     cmds:
       - |
+        if sed -n '/^# BEGIN HTTPS SERVER (managed by task switch-http and task switch-https)$/,/^# END HTTPS SERVER$/p' ./nginx/default.conf | grep -q '^# server {$'; then
+          sed -i '/^# BEGIN HTTPS SERVER (managed by task switch-http and task switch-https)$/,/^# END HTTPS SERVER$/ {
+            /^# BEGIN HTTPS SERVER (managed by task switch-http and task switch-https)$/b
+            /^# END HTTPS SERVER$/b
+            s/^# //
+          }' ./nginx/default.conf
+        fi
+
         sed -i -E '
           /listen 80;/,/^}/ {
             s/^([[:space:]]*)(proxy_pass|proxy_http_version|proxy_set_header|proxy_cache_bypass)/\1# \2/
@@ -99,7 +115,7 @@ tasks:
             s/^([[:space:]]*)# (https:\/\/[^$]*\$request_uri;)/\1return 301 \2/
           }
         ' ./nginx/default.conf
-    desc: enable the HTTPS redirect in the HTTP server block
+    desc: enable the TLS server block and redirect HTTP to HTTPS
 
   test-cert:
     aliases:

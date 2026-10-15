@@ -8,22 +8,28 @@ Help you to configure
 2. Switch to http for cert generation:
 `task switch-http`
 
-3. Test cert generation:
+3. Start docker compose:
+`task r`
+
+4. Check nginx logs:
+`task l -- nginx`
+
+5. Test cert generation:
 `task test-cert`
 
-4. Run cert generation:
+6. Run cert generation:
 `task cert`
 
-5. Switch https back:
+7. Switch https back:
 `task switch-https`
 
-6. Get cert info:
+8. Get cert info:
 `task cert-info`
 
-7. Check certificate renewal (dry run):
+9. Check certificate renewal (dry run):
 `task test-renew`
 
-8. Renew cert manually:
+10. Renew cert manually:
 `task renew-cert`
 
 #### © Eugene Denkevich, 2026.
